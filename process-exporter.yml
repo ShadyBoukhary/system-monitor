@@ -1,0 +1,6 @@
+process_names:
+  # Use a simple catch-all that groups processes by their command name
+  # This will capture ALL processes without complex pattern matching
+  - name: "{{.Comm}}"
+    cmdline:
+    - '.+'

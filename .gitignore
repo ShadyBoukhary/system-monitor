@@ -1,0 +1,71 @@
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Grafana data and logs
+grafana/data/
+grafana/logs/
+grafana/provisioning/dashboards/*.db
+
+# Prometheus data
+prometheus/data/
+prometheus/logs/
+
+# Process exporter data
+process-exporter/data/
+
+# ZFS monitoring data
+zfs-monitor/data/
+zfs-monitor/textfiles/
+
+# Docker volumes and runtime data
+*/data/
+*/logs/
+*/tmp/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Docker-related
+.dockerignore
+
+# SSL certificates (if any)
+*.crt
+*.key
+*.pem
+*.p12
+
+# Local configuration overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

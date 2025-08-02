@@ -1,0 +1,588 @@
+{
+  "id": null,
+  "title": "System Detailed Overview",
+  "tags": ["system", "monitoring", "detailed"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": {"h": 8, "w": 4, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": {"h": 8, "w": 4, "x": 4, "y": 0}
+    },
+    {
+      "id": 3,
+      "title": "Disk Usage",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"}) * 100)",
+          "legendFormat": "Root Disk Usage %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": {"h": 8, "w": 4, "x": 8, "y": 0}
+    },
+    {
+      "id": 4,
+      "title": "System Load",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_load1",
+          "legendFormat": "1min Load"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 4, "x": 12, "y": 0}
+    },
+    {
+      "id": 5,
+      "title": "Memory Available",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_memory_MemAvailable_bytes",
+          "legendFormat": "Available"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1
+        }
+      },
+      "gridPos": {"h": 8, "w": 4, "x": 16, "y": 0}
+    },
+    {
+      "id": 6,
+      "title": "Total Memory",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes",
+          "legendFormat": "Total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1
+        }
+      },
+      "gridPos": {"h": 8, "w": 4, "x": 20, "y": 0}
+    },
+    {
+      "id": 8,
+      "title": "Combined Top Memory Consumers", 
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(20, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "expr": "topk(15, container_memory_rss{name!=\"\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory Usage"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "min",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "Time": true,
+              "job": true,
+              "instance": true,
+              "memtype": true
+            },
+            "renameByName": {
+              "groupname": "Process/Container",
+              "name": "Process/Container", 
+              "Value #A": "Memory Usage",
+              "Value #B": "Memory Usage"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Memory %",
+            "binary": {
+              "left": "Memory Usage",
+              "operator": "/",
+              "right": "node_memory_MemTotal_bytes"
+            },
+            "mode": "binary"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Memory % Final",
+            "binary": {
+              "left": "Memory %",
+              "operator": "*",
+              "right": "100"
+            },
+            "mode": "binary"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Memory %": true
+            },
+            "renameByName": {
+              "Memory % Final": "Memory %"
+            },
+            "indexByName": {
+              "Process/Container": 0,
+              "Memory Usage": 1,
+              "Memory %": 2
+            }
+          }
+        }
+      ],
+      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 8}
+    },
+    {
+      "id": 9,
+      "title": "Memory Summary",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"})",
+          "legendFormat": "Process RSS Memory"
+        },
+        {
+          "expr": "sum(container_memory_rss{name!=\"\"})",
+          "legendFormat": "Container RSS Memory"
+        },
+        {
+          "expr": "node_memory_Buffers_bytes + node_memory_Cached_bytes",
+          "legendFormat": "Buffers + Cache"
+        },
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes - sum(namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"}) - sum(container_memory_rss{name!=\"\"}) - node_memory_Buffers_bytes - node_memory_Cached_bytes",
+          "legendFormat": "Kernel + System Memory"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+    },
+    {
+      "id": 10,
+      "title": "Memory Usage Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(topk(5, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"}))",
+          "legendFormat": "Top 5 System Processes"
+        },
+        {
+          "expr": "sum(namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"}) - sum(topk(5, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"}))",
+          "legendFormat": "Other System Processes"
+        },
+        {
+          "expr": "sum(container_memory_rss{name!=\"\"})",
+          "legendFormat": "All Containers"
+        },
+        {
+          "expr": "node_memory_Buffers_bytes + node_memory_Cached_bytes",
+          "legendFormat": "Cache/Buffers"
+        },
+        {
+          "expr": "node_memory_MemFree_bytes",
+          "legendFormat": "Free Memory"
+        },
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes - sum(namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!=\"\"}) - sum(container_memory_rss{name!=\"\"})",
+          "legendFormat": "Kernel/Other"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            }
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "visible",
+          "placement": "right",
+          "showLegend": true,
+          "values": ["percent", "value"]
+        },
+        "displayLabels": ["name", "percent"]
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+    },
+    {
+      "id": 12,
+      "title": "CPU Usage Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %"
+        },
+        {
+          "expr": "100 - (avg by (mode) (irate(node_cpu_seconds_total[5m])) * 100)",
+          "legendFormat": "{{mode}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28}
+    },
+    {
+      "id": 13,
+      "title": "Memory Usage Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %"
+        },
+        {
+          "expr": "node_memory_Buffers_bytes / node_memory_MemTotal_bytes * 100",
+          "legendFormat": "Buffers %"
+        },
+        {
+          "expr": "node_memory_Cached_bytes / node_memory_MemTotal_bytes * 100",
+          "legendFormat": "Cache %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28}
+    },
+    {
+      "id": 14,
+      "title": "Disk I/O",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total[5m])",
+          "legendFormat": "Read {{device}}"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total[5m])",
+          "legendFormat": "Write {{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "binBps"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36}
+    },
+    {
+      "id": 15,
+      "title": "Network I/O",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{device!=\"lo\"}[5m])",
+          "legendFormat": "Receive {{device}}"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{device!=\"lo\"}[5m])",
+          "legendFormat": "Transmit {{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "binBps"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36}
+    },
+    {
+      "id": 16,
+      "title": "ACTIONABLE: Stop These Processes to Free Memory",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(15, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!~\"(kernel|init|systemd|kthreadd|ksoftirqd|migration|rcu_|watchdog)\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory Usage"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory to Free"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "Time": true,
+              "job": true,
+              "instance": true,
+              "memtype": true
+            },
+            "renameByName": {
+              "groupname": "Process (Kill Command)",
+              "Value": "Memory to Free"
+            }
+          }
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44}
+    },
+    {
+      "id": 17,
+      "title": "ACTIONABLE: Stop These Containers to Free Memory",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, container_memory_rss{name!=\"\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory to Free"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "Time": true,
+              "job": true,
+              "instance": true,
+              "id": true,
+              "image": true
+            },
+            "renameByName": {
+              "name": "Container (docker stop)",
+              "Value": "Memory to Free"
+            }
+          }
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 44}
+    },
+    {
+      "id": 18,
+      "title": "Memory Pressure Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_memory_MemAvailable_bytes",
+          "legendFormat": "Available Memory"
+        },
+        {
+          "expr": "sum(topk(5, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!~\"(kernel|init|systemd|kthreadd|ksoftirqd|migration|rcu_|watchdog)\"}))",
+          "legendFormat": "Top 5 Killable Processes"
+        },
+        {
+          "expr": "sum(topk(3, container_memory_rss{name!=\"\"}))",
+          "legendFormat": "Top 3 Stoppable Containers"
+        },
+        {
+          "expr": "(node_memory_MemAvailable_bytes + sum(topk(5, namedprocess_namegroup_memory_bytes{memtype=\"resident\",groupname!~\"(kernel|init|systemd|kthreadd|ksoftirqd|migration|rcu_|watchdog)\"})) + sum(topk(3, container_memory_rss{name!=\"\"})))",
+          "legendFormat": "Potential Available After Cleanup"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 52}
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "5s"
+}

@@ -1,0 +1,12 @@
+# HELP zfs_pool_health ZFS pool health status (0=ONLINE, 1=DEGRADED, 2=FAULTED)
+# TYPE zfs_pool_health gauge
+zfs_pool_health{pool="tank"} 0
+# HELP zfs_pool_size_bytes ZFS pool total size in bytes
+# TYPE zfs_pool_size_bytes gauge
+# HELP zfs_pool_allocated_bytes ZFS pool allocated space in bytes
+# TYPE zfs_pool_allocated_bytes gauge
+# HELP zfs_pool_free_bytes ZFS pool free space in bytes
+# TYPE zfs_pool_free_bytes gauge
+zfs_pool_size_bytes{pool="tank"} 48000554500096
+zfs_pool_allocated_bytes{pool="tank"} 22542793113600
+zfs_pool_free_bytes{pool="tank"} 25457761386496

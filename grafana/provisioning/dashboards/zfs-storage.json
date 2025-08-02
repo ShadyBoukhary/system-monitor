@@ -1,0 +1,130 @@
+{
+  "id": null,
+  "title": "ZFS Storage",
+  "tags": ["zfs", "storage"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "ZFS Pool Health",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "zfs_pool_health",
+          "legendFormat": "{{ pool }}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "ONLINE",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "DEGRADED", 
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "FAULTED",
+                  "color": "red"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "ZFS Pool Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(zfs_pool_allocated_bytes / zfs_pool_size_bytes) * 100",
+          "legendFormat": "{{ pool }} - Used %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "id": 3,
+      "title": "ZFS Pool Space",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "zfs_pool_allocated_bytes / 1024 / 1024 / 1024",
+          "legendFormat": "{{ pool }} - Used GB",
+          "refId": "A"
+        },
+        {
+          "expr": "zfs_pool_free_bytes / 1024 / 1024 / 1024",
+          "legendFormat": "{{ pool }} - Free GB",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "GB"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "id": 4,
+      "title": "ZFS Total Pool Space",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "zfs_pool_size_bytes / 1024 / 1024 / 1024",
+          "legendFormat": "{{ pool }} - Total GB",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "GB"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    },
+    {
+      "id": 5,
+      "title": "General Storage Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{fstype=~\"ext4|xfs|zfs\"} / node_filesystem_size_bytes{fstype=~\"ext4|xfs|zfs\"}) * 100)",
+          "legendFormat": "{{ mountpoint }} - Used %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "5s"
+}
